@@ -8,7 +8,7 @@ export default function useDistance(): number {
   const map = useGameMap();
 
   const gun = useDataStore(useShallow((s) => s.getGun()));
-  const target = useDataStore(useShallow((s) => s.getTarget()));
+  const target = useDataStore(useShallow((s) => s.getAim()));
 
   const distance = studsToMeters(
     calculateDistance(gun.x, gun.y, target.x, target.y) * map.size,

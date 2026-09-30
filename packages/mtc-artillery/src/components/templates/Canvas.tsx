@@ -12,8 +12,10 @@ import useHeightmapZ from '@/hooks/data/useHeightmapZ';
 import useProjectile from '@/hooks/data/useProjectile';
 import { useCanvasStore } from '@/stores/canvas';
 import { useDataStore } from '@/stores/data';
+import drawAim from '@/utils/canvas/drawAim';
 import drawBlastRadius from '@/utils/canvas/drawBlastRadius';
 import drawGun from '@/utils/canvas/drawGun';
+import drawImpact from '@/utils/canvas/drawImpact';
 import drawLine from '@/utils/canvas/drawLine';
 import drawTarget from '@/utils/canvas/drawTarget';
 import { getMapImageUrl } from '@/utils/images';
@@ -44,6 +46,9 @@ function Canvas() {
   const setGun = useDataStore((s) => s.setGun);
   const target = useDataStore(useShallow((s) => s.getTarget()));
   const setTarget = useDataStore((s) => s.setTarget);
+  const aim = useDataStore(useShallow((s) => s.getAim()));
+  const impact = useDataStore((s) => s.adjustment.impact);
+  const setImpact = useDataStore((s) => s.setImpact);
 
   const canvasStore = useCanvasStore();
   const canvasScale = 8;
@@ -104,16 +109,13 @@ function Canvas() {
     );
 
     drawBlastRadius(context, target, scaledDimension, blastRadius);
-    drawLine(
-      context,
-      canvasScale,
-      canvasStore.zoom,
-      gun,
-      target,
-      scaledDimension,
-    );
+    drawLine(context, canvasScale, canvasStore.zoom, gun, aim, scaledDimension);
     drawGun(context, gun, maxRadius, scaledDimension, markerRadius);
     drawTarget(context, target, scaledDimension, markerRadius);
+    if (aim.x !== target.x || aim.y !== target.y)
+      drawAim(context, aim, scaledDimension, markerRadius);
+    if (impact)
+      drawImpact(context, target, impact, scaledDimension, markerRadius);
 
     function clickListener(event: MouseEvent) {
       event.preventDefault();
@@ -124,6 +126,7 @@ function Canvas() {
 
       const updateGun = () => setGun(x, y);
       const updateTarget = () => setTarget(x, y);
+      const updateImpact = () => setImpact(x, y);
 
       if (isMobile)
         switch (mobileMode) {
@@ -133,6 +136,9 @@ function Canvas() {
           case 'target':
             updateTarget();
             break;
+          case 'impact':
+            updateImpact();
+            break;
         }
       else
         switch (event.button) {
@@ -140,9 +146,10 @@ function Canvas() {
           case 0:
             updateGun();
             break;
-          // RMB
+          // RMB, or Shift + RMB to mark where a round landed
           case 2:
-            updateTarget();
+            if (event.shiftKey) updateImpact();
+            else updateTarget();
             break;
         }
     }
@@ -150,15 +157,18 @@ function Canvas() {
     canvas.addEventListener('mousedown', clickListener);
     return () => canvas.removeEventListener('mousedown', clickListener);
   }, [
+    aim,
     blastRadius,
     canvasStore.height,
     canvasStore.width,
     canvasStore.zoom,
     gun,
+    impact,
     maxRadius,
     mobileMode,
     scaledDimension,
     setGun,
+    setImpact,
     setTarget,
     target,
   ]);

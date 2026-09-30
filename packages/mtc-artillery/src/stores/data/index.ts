@@ -19,6 +19,18 @@ interface StringVector {
   y: string;
 }
 
+interface AdjustmentData {
+  /** Aim offset from the target carried over from previous rounds */
+  offset: Vector;
+  /** Where the latest round landed */
+  impact: Vector | null;
+}
+
+const emptyAdjustment: AdjustmentData = {
+  offset: { x: 0, y: 0 },
+  impact: null,
+};
+
 export interface DataStore {
   mapId: MapId;
   setMapId: (mapId: MapId) => void;
@@ -34,6 +46,14 @@ export interface DataStore {
   getGun: () => Vector;
   setGun: (x: number, y: number) => void;
 
+  adjustment: AdjustmentData;
+  /** Point to fire at, the target corrected by the observed impacts */
+  getAim: () => Vector;
+  setImpact: (x: number, y: number) => void;
+  /** Keep the current correction and prepare for the next observed impact */
+  nextRound: () => void;
+  resetAdjustment: () => void;
+
   mobileMode: MobileModes;
   setMobileMode: (mode: MobileModes) => void;
 }
@@ -45,6 +65,7 @@ export const useDataStore = create(
       setMapId(mapId) {
         set((s) => {
           s.mapId = mapId;
+          s.adjustment = emptyAdjustment;
         });
       },
 
@@ -74,6 +95,7 @@ export const useDataStore = create(
             x: String(x),
             y: String(y),
           };
+          s.adjustment = emptyAdjustment;
         });
       },
 
@@ -90,6 +112,43 @@ export const useDataStore = create(
             x: String(x),
             y: String(y),
           };
+          s.adjustment = emptyAdjustment;
+        });
+      },
+
+      adjustment: emptyAdjustment,
+      getAim() {
+        const target = this.getTarget();
+        const { offset, impact } = this.adjustment;
+
+        // aim the opposite way of the miss
+        const missX = impact ? impact.x - target.x : 0;
+        const missY = impact ? impact.y - target.y : 0;
+
+        return {
+          x: target.x + offset.x - missX,
+          y: target.y + offset.y - missY,
+        };
+      },
+      setImpact(x, y) {
+        set((s) => {
+          s.adjustment.impact = { x, y };
+        });
+      },
+      nextRound() {
+        set((s) => {
+          const aim = s.getAim();
+          const target = s.getTarget();
+
+          s.adjustment = {
+            offset: { x: aim.x - target.x, y: aim.y - target.y },
+            impact: null,
+          };
+        });
+      },
+      resetAdjustment() {
+        set((s) => {
+          s.adjustment = emptyAdjustment;
         });
       },
 

@@ -4,6 +4,7 @@ import { isMobile } from 'react-device-detect';
 
 import ColumnContainer from '@/components/atoms/ColumnContainer';
 import ConfigurationGroup from '@/components/atoms/ConfigurationGroup';
+import AdjustFire from '@/components/organisms/configuration/AdjustFire';
 import AzimuthValue from '@/components/organisms/configuration/Azimuth';
 import DistanceValue from '@/components/organisms/configuration/Distance';
 import ElevationValue from '@/components/organisms/configuration/Elevation';
@@ -48,6 +49,7 @@ export default function MobileView() {
             <AzimuthValue />
             <DistanceValue />
             <TimeOfFlightValue />
+            <AdjustFire />
             <ProjectileSelection />
             <MapSelection />
           </ConfigurationGroup>
