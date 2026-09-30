@@ -4,6 +4,7 @@ import { LogicalSize } from '@tauri-apps/api/dpi';
 import React from 'react';
 
 import ColumnContainer from '@/components/atoms/ColumnContainer';
+import AdjustFire from '@/components/organisms/configuration/AdjustFire';
 import AzimuthValue from '@/components/organisms/configuration/Azimuth';
 import DistanceValue from '@/components/organisms/configuration/Distance';
 import ElevationValue from '@/components/organisms/configuration/Elevation';
@@ -57,8 +58,15 @@ export default function OverlayView() {
 
     updateSize();
 
+    // content can change height without the window resizing (e.g. the adjust fire panel appearing)
+    const resizeObserver = new ResizeObserver(updateSize);
+    resizeObserver.observe(document.body);
+
     window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
   }, []);
 
   return (
@@ -118,6 +126,8 @@ export default function OverlayView() {
               <DistanceValue />
               <TimeOfFlightValue minimized />
             </RowContainer>
+
+            <AdjustFire minimized />
           </ColumnContainer>
 
           <ColumnContainer

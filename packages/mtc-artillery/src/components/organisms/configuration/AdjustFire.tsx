@@ -10,8 +10,13 @@ import DataContainer from '@/components/atoms/DataContainer';
 import useGameMap from '@/hooks/data/useGameMap';
 import { useDataStore } from '@/stores/data';
 import { calculateMissComponents, studsToMeters } from '@/utils/math';
+import RowContainer from '@tauri/atoms/RowContainer';
 
-export default function AdjustFire() {
+export default function AdjustFire({
+  minimized = false,
+}: {
+  minimized?: boolean;
+}) {
   const t = useTranslations();
 
   const map = useGameMap();
@@ -37,6 +42,64 @@ export default function AdjustFire() {
       impact.y,
     ).map((value) => studsToMeters(value * map.size));
 
+  const buttons = (
+    <>
+      <Button disabled={!impact} size="sm" variant="soft" onClick={nextRound}>
+        {t('typography.adjustFire.nextRound')}
+      </Button>
+
+      <Button
+        color="neutral"
+        size="sm"
+        variant="soft"
+        onClick={resetAdjustment}
+      >
+        {t('typography.adjustFire.reset')}
+      </Button>
+    </>
+  );
+
+  const miss = impact ? (
+    <>
+      <DataContainer>
+        <Typography level="title-md">
+          {t('typography.adjustFire.range')}
+        </Typography>
+
+        <Typography>
+          {t('units.meter', { value: todec(Math.abs(range)) })}{' '}
+          {t(`typography.adjustFire.${range > 0 ? 'long' : 'short'}`)}
+        </Typography>
+      </DataContainer>
+
+      <DataContainer>
+        <Typography level="title-md">
+          {t('typography.adjustFire.deflection')}
+        </Typography>
+
+        <Typography>
+          {t('units.meter', { value: todec(Math.abs(deflection)) })}{' '}
+          {t(`typography.adjustFire.${deflection > 0 ? 'right' : 'left'}`)}
+        </Typography>
+      </DataContainer>
+    </>
+  ) : (
+    <DataContainer>
+      <Typography level="body-sm">
+        {t('typography.adjustFire.corrected')}
+      </Typography>
+    </DataContainer>
+  );
+
+  if (minimized)
+    return (
+      <>
+        {impact ? <RowContainer>{miss}</RowContainer> : miss}
+
+        <RowContainer>{buttons}</RowContainer>
+      </>
+    );
+
   return (
     <>
       <DataContainer>
@@ -44,58 +107,10 @@ export default function AdjustFire() {
           {t('typography.adjustFire.title')}
         </Typography>
 
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button
-            disabled={!impact}
-            size="sm"
-            variant="soft"
-            onClick={nextRound}
-          >
-            {t('typography.adjustFire.nextRound')}
-          </Button>
-
-          <Button
-            color="neutral"
-            size="sm"
-            variant="soft"
-            onClick={resetAdjustment}
-          >
-            {t('typography.adjustFire.reset')}
-          </Button>
-        </Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>{buttons}</Box>
       </DataContainer>
 
-      {impact ? (
-        <>
-          <DataContainer>
-            <Typography level="title-md">
-              {t('typography.adjustFire.range')}
-            </Typography>
-
-            <Typography>
-              {t('units.meter', { value: todec(Math.abs(range)) })}{' '}
-              {t(`typography.adjustFire.${range > 0 ? 'long' : 'short'}`)}
-            </Typography>
-          </DataContainer>
-
-          <DataContainer>
-            <Typography level="title-md">
-              {t('typography.adjustFire.deflection')}
-            </Typography>
-
-            <Typography>
-              {t('units.meter', { value: todec(Math.abs(deflection)) })}{' '}
-              {t(`typography.adjustFire.${deflection > 0 ? 'right' : 'left'}`)}
-            </Typography>
-          </DataContainer>
-        </>
-      ) : (
-        <DataContainer>
-          <Typography level="body-sm">
-            {t('typography.adjustFire.corrected')}
-          </Typography>
-        </DataContainer>
-      )}
+      {miss}
     </>
   );
 }
