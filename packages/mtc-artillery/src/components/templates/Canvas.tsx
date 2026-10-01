@@ -12,7 +12,6 @@ import useHeightmapZ from '@/hooks/data/useHeightmapZ';
 import useProjectile from '@/hooks/data/useProjectile';
 import { useCanvasStore } from '@/stores/canvas';
 import { useDataStore } from '@/stores/data';
-import drawAim from '@/utils/canvas/drawAim';
 import drawBlastRadius from '@/utils/canvas/drawBlastRadius';
 import drawGun from '@/utils/canvas/drawGun';
 import drawImpact from '@/utils/canvas/drawImpact';
@@ -46,9 +45,8 @@ function Canvas() {
   const setGun = useDataStore((s) => s.setGun);
   const target = useDataStore(useShallow((s) => s.getTarget()));
   const setTarget = useDataStore((s) => s.setTarget);
-  const aim = useDataStore(useShallow((s) => s.getAim()));
-  const impact = useDataStore((s) => s.adjustment.impact);
-  const setImpact = useDataStore((s) => s.setImpact);
+  const correction = useDataStore((s) => s.correction);
+  const markImpact = useDataStore((s) => s.markImpact);
 
   const canvasStore = useCanvasStore();
   const canvasScale = 8;
@@ -109,13 +107,26 @@ function Canvas() {
     );
 
     drawBlastRadius(context, target, scaledDimension, blastRadius);
-    drawLine(context, canvasScale, canvasStore.zoom, gun, aim, scaledDimension);
+    drawLine(
+      context,
+      canvasScale,
+      canvasStore.zoom,
+      gun,
+      target,
+      scaledDimension,
+    );
+    if (correction)
+      drawImpact(
+        context,
+        target,
+        correction.impact,
+        correction.previousGun,
+        gun,
+        scaledDimension,
+        markerRadius,
+      );
     drawGun(context, gun, maxRadius, scaledDimension, markerRadius);
     drawTarget(context, target, scaledDimension, markerRadius);
-    if (aim.x !== target.x || aim.y !== target.y)
-      drawAim(context, aim, scaledDimension, markerRadius);
-    if (impact)
-      drawImpact(context, target, impact, scaledDimension, markerRadius);
 
     function clickListener(event: MouseEvent) {
       event.preventDefault();
@@ -126,7 +137,7 @@ function Canvas() {
 
       const updateGun = () => setGun(x, y);
       const updateTarget = () => setTarget(x, y);
-      const updateImpact = () => setImpact(x, y);
+      const updateImpact = () => markImpact(x, y);
 
       if (isMobile)
         switch (mobileMode) {
@@ -157,18 +168,17 @@ function Canvas() {
     canvas.addEventListener('mousedown', clickListener);
     return () => canvas.removeEventListener('mousedown', clickListener);
   }, [
-    aim,
     blastRadius,
     canvasStore.height,
     canvasStore.width,
     canvasStore.zoom,
+    correction,
     gun,
-    impact,
+    markImpact,
     maxRadius,
     mobileMode,
     scaledDimension,
     setGun,
-    setImpact,
     setTarget,
     target,
   ]);

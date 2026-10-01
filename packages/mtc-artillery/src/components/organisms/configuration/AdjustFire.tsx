@@ -1,5 +1,4 @@
 import todec from '2dec';
-import Box from '@mui/joy/Box';
 import Button from '@mui/joy/Button';
 import Typography from '@mui/joy/Typography';
 import { useTranslations } from 'next-intl';
@@ -21,45 +20,31 @@ export default function AdjustFire({
 
   const map = useGameMap();
 
-  const gun = useDataStore(useShallow((s) => s.getGun()));
   const target = useDataStore(useShallow((s) => s.getTarget()));
-  const { offset, impact } = useDataStore((s) => s.adjustment);
-  const nextRound = useDataStore((s) => s.nextRound);
-  const resetAdjustment = useDataStore((s) => s.resetAdjustment);
+  const correction = useDataStore((s) => s.correction);
+  const undoCorrection = useDataStore((s) => s.undoCorrection);
 
-  const hasOffset = offset.x !== 0 || offset.y !== 0;
-  if (!impact && !hasOffset) return null;
+  if (!correction) return null;
 
-  let range = 0;
-  let deflection = 0;
-  if (impact)
-    [range, deflection] = calculateMissComponents(
-      gun.x,
-      gun.y,
-      target.x,
-      target.y,
-      impact.x,
-      impact.y,
-    ).map((value) => studsToMeters(value * map.size));
+  const { previousGun, impact } = correction;
 
-  const buttons = (
-    <>
-      <Button disabled={!impact} size="sm" variant="soft" onClick={nextRound}>
-        {t('typography.adjustFire.nextRound')}
-      </Button>
+  // the round was fired along the line from where the gun was placed
+  const [range, deflection] = calculateMissComponents(
+    previousGun.x,
+    previousGun.y,
+    target.x,
+    target.y,
+    impact.x,
+    impact.y,
+  ).map((value) => studsToMeters(value * map.size));
 
-      <Button
-        color="neutral"
-        size="sm"
-        variant="soft"
-        onClick={resetAdjustment}
-      >
-        {t('typography.adjustFire.reset')}
-      </Button>
-    </>
+  const undoButton = (
+    <Button color="neutral" size="sm" variant="soft" onClick={undoCorrection}>
+      {t('typography.adjustFire.undo')}
+    </Button>
   );
 
-  const miss = impact ? (
+  const miss = (
     <>
       <DataContainer>
         <Typography level="title-md">
@@ -83,20 +68,20 @@ export default function AdjustFire({
         </Typography>
       </DataContainer>
     </>
-  ) : (
-    <DataContainer>
-      <Typography level="body-sm">
-        {t('typography.adjustFire.corrected')}
-      </Typography>
-    </DataContainer>
   );
 
   if (minimized)
     return (
       <>
-        {impact ? <RowContainer>{miss}</RowContainer> : miss}
+        <RowContainer>{miss}</RowContainer>
 
-        <RowContainer>{buttons}</RowContainer>
+        <RowContainer>
+          <Typography level="body-sm">
+            {t('typography.adjustFire.corrected')}
+          </Typography>
+
+          {undoButton}
+        </RowContainer>
       </>
     );
 
@@ -107,10 +92,16 @@ export default function AdjustFire({
           {t('typography.adjustFire.title')}
         </Typography>
 
-        <Box sx={{ display: 'flex', gap: 1 }}>{buttons}</Box>
+        {undoButton}
       </DataContainer>
 
       {miss}
+
+      <DataContainer>
+        <Typography level="body-sm">
+          {t('typography.adjustFire.corrected')}
+        </Typography>
+      </DataContainer>
     </>
   );
 }

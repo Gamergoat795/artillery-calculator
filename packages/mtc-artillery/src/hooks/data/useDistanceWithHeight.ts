@@ -7,7 +7,7 @@ import { calculateDistance, studsToMeters } from '@/utils/math';
 
 export default function useDistanceWithHeight(): number {
   const gun = useDataStore(useShallow((s) => s.getGun()));
-  const target = useDataStore(useShallow((s) => s.getAim()));
+  const target = useDataStore(useShallow((s) => s.getTarget()));
 
   const map = useGameMap();
   const [gunHeight, targetHeight] = useHeightmapZ();

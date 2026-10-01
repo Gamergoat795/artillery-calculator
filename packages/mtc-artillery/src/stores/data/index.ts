@@ -19,17 +19,14 @@ interface StringVector {
   y: string;
 }
 
-interface AdjustmentData {
-  /** Aim offset from the target carried over from previous rounds */
-  offset: Vector;
+interface CorrectionData {
+  /** Gun position before the latest correction */
+  previousGun: Vector;
   /** Where the latest round landed */
-  impact: Vector | null;
+  impact: Vector;
 }
 
-const emptyAdjustment: AdjustmentData = {
-  offset: { x: 0, y: 0 },
-  impact: null,
-};
+const clamp = (value: number) => Math.min(Math.max(value, 0), 1);
 
 export interface DataStore {
   mapId: MapId;
@@ -46,13 +43,13 @@ export interface DataStore {
   getGun: () => Vector;
   setGun: (x: number, y: number) => void;
 
-  adjustment: AdjustmentData;
-  /** Point to fire at, the target corrected by the observed impacts */
-  getAim: () => Vector;
-  setImpact: (x: number, y: number) => void;
-  /** Keep the current correction and prepare for the next observed impact */
-  nextRound: () => void;
-  resetAdjustment: () => void;
+  correction: CorrectionData | null;
+  /**
+   * Corrects the gun position using where a round landed,
+   * assuming the round was fired with the firing data shown for the current target
+   */
+  markImpact: (x: number, y: number) => void;
+  undoCorrection: () => void;
 
   mobileMode: MobileModes;
   setMobileMode: (mode: MobileModes) => void;
@@ -65,7 +62,7 @@ export const useDataStore = create(
       setMapId(mapId) {
         set((s) => {
           s.mapId = mapId;
-          s.adjustment = emptyAdjustment;
+          s.correction = null;
         });
       },
 
@@ -95,7 +92,7 @@ export const useDataStore = create(
             x: String(x),
             y: String(y),
           };
-          s.adjustment = emptyAdjustment;
+          s.correction = null;
         });
       },
 
@@ -112,43 +109,37 @@ export const useDataStore = create(
             x: String(x),
             y: String(y),
           };
-          s.adjustment = emptyAdjustment;
+          s.correction = null;
         });
       },
 
-      adjustment: emptyAdjustment,
-      getAim() {
-        const target = this.getTarget();
-        const { offset, impact } = this.adjustment;
-
-        // aim the opposite way of the miss
-        const missX = impact ? impact.x - target.x : 0;
-        const missY = impact ? impact.y - target.y : 0;
-
-        return {
-          x: target.x + offset.x - missX,
-          y: target.y + offset.y - missY,
-        };
-      },
-      setImpact(x, y) {
+      correction: null,
+      markImpact(x, y) {
         set((s) => {
-          s.adjustment.impact = { x, y };
-        });
-      },
-      nextRound() {
-        set((s) => {
-          const aim = s.getAim();
+          const gun = s.getGun();
           const target = s.getTarget();
 
-          s.adjustment = {
-            offset: { x: aim.x - target.x, y: aim.y - target.y },
-            impact: null,
+          // the round flew the computed distance and direction from where the gun really is,
+          // so the gun is off by as much as the round missed the target
+          s.gun = {
+            x: String(clamp(gun.x + (x - target.x))),
+            y: String(clamp(gun.y + (y - target.y))),
+          };
+          s.correction = {
+            previousGun: gun,
+            impact: { x, y },
           };
         });
       },
-      resetAdjustment() {
+      undoCorrection() {
         set((s) => {
-          s.adjustment = emptyAdjustment;
+          if (!s.correction) return;
+
+          s.gun = {
+            x: String(s.correction.previousGun.x),
+            y: String(s.correction.previousGun.y),
+          };
+          s.correction = null;
         });
       },
 

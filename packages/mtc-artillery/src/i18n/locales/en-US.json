@@ -4,16 +4,15 @@
   },
   "typography": {
     "adjustFire": {
-      "corrected": "Firing data corrected for previous rounds",
+      "corrected": "Your position was moved to match where the round landed",
       "deflection": "Deflection",
       "left": "left",
       "long": "long",
-      "nextRound": "Next round",
       "range": "Range",
-      "reset": "Reset",
       "right": "right",
       "short": "short",
-      "title": "Adjust fire"
+      "title": "Last round",
+      "undo": "Undo"
     },
     "azimuth": "Azimuth",
     "distance": "Distance",
@@ -22,7 +21,7 @@
     "gun": "gun",
     "heightmap": "This map features a heightmap for improved accuracy",
     "impact": "impact",
-    "instructions": "<kbd>LMB</kbd> to set your position. <kbd>RMB</kbd> to set the target's position. <kbd>Shift</kbd> + <kbd>RMB</kbd> to mark where your round landed. Hold <kbd>MMB</kbd> to move the map around, and scroll wheel to zoom.",
+    "instructions": "<kbd>LMB</kbd> to set your position. <kbd>RMB</kbd> to set the target's position. <kbd>Shift</kbd> + <kbd>RMB</kbd> to mark where your round landed and correct your position. Hold <kbd>MMB</kbd> to move the map around, and scroll wheel to zoom.",
     "map": "Map",
     "metersPerSecond": "{value} m/s",
     "notApplicable": "N/A",
