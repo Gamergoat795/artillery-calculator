@@ -14,6 +14,7 @@ import { useCanvasStore } from '@/stores/canvas';
 import { useDataStore } from '@/stores/data';
 import drawBlastRadius from '@/utils/canvas/drawBlastRadius';
 import drawGun from '@/utils/canvas/drawGun';
+import drawImpact from '@/utils/canvas/drawImpact';
 import drawLine from '@/utils/canvas/drawLine';
 import drawTarget from '@/utils/canvas/drawTarget';
 import { getMapImageUrl } from '@/utils/images';
@@ -44,6 +45,8 @@ function Canvas() {
   const setGun = useDataStore((s) => s.setGun);
   const target = useDataStore(useShallow((s) => s.getTarget()));
   const setTarget = useDataStore((s) => s.setTarget);
+  const correction = useDataStore((s) => s.correction);
+  const markImpact = useDataStore((s) => s.markImpact);
 
   const canvasStore = useCanvasStore();
   const canvasScale = 8;
@@ -112,6 +115,16 @@ function Canvas() {
       target,
       scaledDimension,
     );
+    if (correction)
+      drawImpact(
+        context,
+        target,
+        correction.impact,
+        correction.previousGun,
+        gun,
+        scaledDimension,
+        markerRadius,
+      );
     drawGun(context, gun, maxRadius, scaledDimension, markerRadius);
     drawTarget(context, target, scaledDimension, markerRadius);
 
@@ -124,6 +137,7 @@ function Canvas() {
 
       const updateGun = () => setGun(x, y);
       const updateTarget = () => setTarget(x, y);
+      const updateImpact = () => markImpact(x, y);
 
       if (isMobile)
         switch (mobileMode) {
@@ -133,6 +147,9 @@ function Canvas() {
           case 'target':
             updateTarget();
             break;
+          case 'impact':
+            updateImpact();
+            break;
         }
       else
         switch (event.button) {
@@ -140,9 +157,10 @@ function Canvas() {
           case 0:
             updateGun();
             break;
-          // RMB
+          // RMB, or Shift + RMB to mark where a round landed
           case 2:
-            updateTarget();
+            if (event.shiftKey) updateImpact();
+            else updateTarget();
             break;
         }
     }
@@ -154,7 +172,9 @@ function Canvas() {
     canvasStore.height,
     canvasStore.width,
     canvasStore.zoom,
+    correction,
     gun,
+    markImpact,
     maxRadius,
     mobileMode,
     scaledDimension,

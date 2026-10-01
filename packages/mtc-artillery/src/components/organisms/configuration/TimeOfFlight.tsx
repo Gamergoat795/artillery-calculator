@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import DataContainer from '@/components/atoms/DataContainer';
-import useDistanceWithHeight from '@/hooks/data/useDistanceWithHeight';
+import useDistance from '@/hooks/data/useDistance';
 import useElevation from '@/hooks/data/useElevation';
 import useProjectile from '@/hooks/data/useProjectile';
 import { calculateTimeOfFlight } from '@/utils/math';
@@ -19,7 +19,8 @@ export default function TimeOfFlightValue({
 
   const { velocity } = useProjectile();
   const [lowArc, highArc] = useElevation();
-  const distance = useDistanceWithHeight();
+  // time of flight depends on the horizontal distance, height is already part of the elevation
+  const distance = useDistance();
 
   const lowArcTof = todec(
     Math.max(0, calculateTimeOfFlight(lowArc, velocity, distance)),

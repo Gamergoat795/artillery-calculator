@@ -180,3 +180,38 @@ export function calculateMaxRangeDiameter(v: number, h: number = 0): number {
 
   return ((v * Math.sqrt(2)) / 2) * Math.max(t1, t2);
 }
+
+/**
+ * Splits a miss (target → impact) into components along and across the gun → target line
+ * @param gx X of the gun
+ * @param gy Y of the gun
+ * @param tx X of the target
+ * @param ty Y of the target
+ * @param ix X of the impact
+ * @param iy Y of the impact
+ * @returns [range, deflection], positive range is long (overshot), positive deflection is right of the line
+ */
+export function calculateMissComponents(
+  gx: number,
+  gy: number,
+  tx: number,
+  ty: number,
+  ix: number,
+  iy: number,
+): [number, number] {
+  const lineLength = calculateDistance(gx, gy, tx, ty);
+  if (lineLength === 0) return [0, 0];
+
+  // unit vector pointing from the gun to the target
+  const ux = (tx - gx) / lineLength;
+  const uy = (ty - gy) / lineLength;
+
+  const mx = ix - tx;
+  const my = iy - ty;
+
+  const range = mx * ux + my * uy;
+  // y grows downwards, so (-uy, ux) points to the right of the line
+  const deflection = mx * -uy + my * ux;
+
+  return [range, deflection];
+}

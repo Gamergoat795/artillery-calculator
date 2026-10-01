@@ -19,6 +19,15 @@ interface StringVector {
   y: string;
 }
 
+interface CorrectionData {
+  /** Gun position before the latest correction */
+  previousGun: Vector;
+  /** Where the latest round landed */
+  impact: Vector;
+}
+
+const clamp = (value: number) => Math.min(Math.max(value, 0), 1);
+
 export interface DataStore {
   mapId: MapId;
   setMapId: (mapId: MapId) => void;
@@ -34,6 +43,14 @@ export interface DataStore {
   getGun: () => Vector;
   setGun: (x: number, y: number) => void;
 
+  correction: CorrectionData | null;
+  /**
+   * Corrects the gun position using where a round landed,
+   * assuming the round was fired with the firing data shown for the current target
+   */
+  markImpact: (x: number, y: number) => void;
+  undoCorrection: () => void;
+
   mobileMode: MobileModes;
   setMobileMode: (mode: MobileModes) => void;
 }
@@ -45,6 +62,7 @@ export const useDataStore = create(
       setMapId(mapId) {
         set((s) => {
           s.mapId = mapId;
+          s.correction = null;
         });
       },
 
@@ -74,6 +92,7 @@ export const useDataStore = create(
             x: String(x),
             y: String(y),
           };
+          s.correction = null;
         });
       },
 
@@ -90,6 +109,37 @@ export const useDataStore = create(
             x: String(x),
             y: String(y),
           };
+          s.correction = null;
+        });
+      },
+
+      correction: null,
+      markImpact(x, y) {
+        set((s) => {
+          const gun = s.getGun();
+          const target = s.getTarget();
+
+          // the round flew the computed distance and direction from where the gun really is,
+          // so the gun is off by as much as the round missed the target
+          s.gun = {
+            x: String(clamp(gun.x + (x - target.x))),
+            y: String(clamp(gun.y + (y - target.y))),
+          };
+          s.correction = {
+            previousGun: gun,
+            impact: { x, y },
+          };
+        });
+      },
+      undoCorrection() {
+        set((s) => {
+          if (!s.correction) return;
+
+          s.gun = {
+            x: String(s.correction.previousGun.x),
+            y: String(s.correction.previousGun.y),
+          };
+          s.correction = null;
         });
       },
 

@@ -4,7 +4,13 @@ import React from 'react';
 
 import { useDataStore } from '@/stores/data';
 
-export type MobileModes = 'gun' | 'target';
+export type MobileModes = 'gun' | 'target' | 'impact';
+
+const nextMode: Record<MobileModes, MobileModes> = {
+  gun: 'target',
+  target: 'impact',
+  impact: 'gun',
+};
 
 export default function MobileMode() {
   const t = useTranslations();
@@ -18,12 +24,11 @@ export default function MobileMode() {
       size="lg"
       variant="solid"
       onClick={() => {
-        setMobileMode(mobileMode === 'gun' ? 'target' : 'gun');
+        setMobileMode(nextMode[mobileMode] ?? 'gun');
       }}
     >
       {t('typography.switchSelectionTo', {
-        value:
-          mobileMode === 'gun' ? t('typography.target') : t('typography.gun'),
+        value: t(`typography.${nextMode[mobileMode] ?? 'gun'}`),
       })}
     </Button>
   );

@@ -3,13 +3,25 @@
     "description": "An artillery calculator made for Multicrew Tank Combat on Roblox."
   },
   "typography": {
+    "adjustFire": {
+      "corrected": "Your position was moved to match where the round landed",
+      "deflection": "Deflection",
+      "left": "left",
+      "long": "long",
+      "range": "Range",
+      "right": "right",
+      "short": "short",
+      "title": "Last round",
+      "undo": "Undo"
+    },
     "azimuth": "Azimuth",
     "distance": "Distance",
     "downloadOverlay": "Download the in-game overlay at <link></link>.",
     "elevation": "Elevation",
     "gun": "gun",
     "heightmap": "This map features a heightmap for improved accuracy",
-    "instructions": "<kbd>LMB</kbd> to set your position. <kbd>RMB</kbd> to set the target's position. Hold <kbd>MMB</kbd> to move the map around, and scroll wheel to zoom.",
+    "impact": "impact",
+    "instructions": "<kbd>LMB</kbd> to set your position. <kbd>RMB</kbd> to set the target's position. <kbd>Shift</kbd> + <kbd>RMB</kbd> to mark where your round landed and correct your position. Hold <kbd>MMB</kbd> to move the map around, and scroll wheel to zoom.",
     "map": "Map",
     "metersPerSecond": "{value} m/s",
     "notApplicable": "N/A",
