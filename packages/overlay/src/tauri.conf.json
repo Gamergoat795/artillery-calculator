@@ -1,7 +1,8 @@
 {
   "build": {
     "beforeDevCommand": "pnpm -C ../../packages/mtc-artillery run dev",
-    "frontendDist": "../dist",
+    "beforeBuildCommand": "pnpm -C ../../packages/mtc-artillery run build:overlay",
+    "frontendDist": "../../mtc-artillery/out",
     "devUrl": "http://localhost:8888"
   },
   "bundle": {
@@ -17,7 +18,7 @@
   },
   "productName": "mtc-artillery-overlay",
   "mainBinaryName": "mtc-artillery-overlay",
-  "version": "0.2.8",
+  "version": "0.3.0",
   "identifier": "com.artillery-calculator.overlay",
   "plugins": {},
   "app": {
@@ -50,9 +51,6 @@
           "description": "main",
           "local": true,
           "windows": ["main"],
-          "remote": {
-            "urls": ["https://artillery-calculator.com"]
-          },
           "permissions": [
             "core:webview:default",
             "core:window:default",

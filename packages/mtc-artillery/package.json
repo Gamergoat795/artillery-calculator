@@ -18,6 +18,7 @@
     "build:analyze": "cross-env ANALYZE=true pnpm run build:unsafe",
     "build:prod": "pnpm run lint && pnpm run build:unsafe",
     "build:unsafe": "pnpm run next:build",
+    "build:overlay": "cross-env NEXT_OUTPUT=export pnpm run next:build",
     "next:build": "next build",
     "lint": "pnpm run next:lint && pnpm run eslint",
     "next:lint": "next lint",

@@ -35,25 +35,14 @@ jobs:
       - name: Install pnpm packages
         run: pnpm install
 
-      - uses: ari-party/action-get-latest-tag@v1
-        id: tag_version
-
-      - name: Get Tauri version
-        id: tauri_version
+      - name: Check for an existing release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           tauri_version=$(node scripts/version.mjs)
-          echo "tauri_version=$tauri_version" >> $GITHUB_OUTPUT
-
-      - name: Compare
-        run: |
-          raw_version=${{ steps.tag_version.outputs.tag }}
-          prefixedVersion=${raw_version#overlay-}
-          version=${prefixedVersion#v}
-          tauri_version=${{ steps.tauri_version.outputs.tauri_version }}
-          echo "Branch version: $version"
           echo "Tauri version: $tauri_version"
-          if [ "$version" == "$tauri_version" ]; then
-            echo "Versions are equal, exiting..."
+          if gh release view "overlay-v$tauri_version" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "A release for this version already exists, bump the version in tauri.conf.json"
             exit 1
           fi
 
@@ -95,10 +84,17 @@ jobs:
         with:
           node-version: 22
           cache: "pnpm"
-          cache-dependency-path: ./packages/overlay/pnpm-lock.yaml
+          cache-dependency-path: |
+            ./packages/overlay/pnpm-lock.yaml
+            ./packages/mtc-artillery/pnpm-lock.yaml
 
       - name: Install pnpm packages
         run: pnpm install
+
+      # the calculator is bundled into the overlay
+      - name: Install pnpm packages (mtc-artillery)
+        run: pnpm install
+        working-directory: ./packages/mtc-artillery
 
       - name: Install dependencies (ubuntu)
         if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
@@ -131,7 +127,7 @@ jobs:
             x64-setup.exe = windows
             x64_en-US.msi = windows
             ```
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           projectPath: ./packages/overlay
           args: ${{ matrix.args }}
@@ -144,5 +140,7 @@ jobs:
           echo "list=$list" >> $GITHUB_OUTPUT
 
       - uses: actions/attest-build-provenance@v1
+        # attestations aren't available for every repository
+        continue-on-error: true
         with:
           subject-path: ${{ steps.artifact_paths.outputs.list }}

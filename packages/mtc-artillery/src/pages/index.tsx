@@ -7,7 +7,7 @@ import Page from '@/components/layout/Page';
 import Settings from '@/components/templates/Settings';
 import Umami from '@/components/utils/Umami';
 import useIsSmallScreen from '@/hooks/useIsSmallScreen';
-import locales from '@/i18n';
+import locales, { config } from '@/i18n';
 import DesktopView from '@/views/Desktop';
 import MobileView from '@/views/Mobile';
 
@@ -18,7 +18,7 @@ export async function getStaticProps(
 ): Promise<GetStaticPropsResult<{ messages: unknown }>> {
   return {
     props: {
-      messages: locales[context.locale!],
+      messages: locales[context.locale ?? config.defaultLocale],
     },
   };
 }

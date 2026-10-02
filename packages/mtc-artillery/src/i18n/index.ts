@@ -36,4 +36,22 @@ for (const locale of Object.keys(locales))
 
 export default locales;
 
+/**
+ * @param locale Locale from the router, missing in static exports
+ * @returns The given locale, otherwise the best match for the browser's languages
+ */
+export function resolveLocale(locale?: string): string {
+  if (locale) return locale;
+  if (typeof navigator === 'undefined') return config.defaultLocale;
+
+  for (const language of navigator.languages) {
+    const match =
+      config.locales.find((l) => l === language) ??
+      config.locales.find((l) => l.split('-')[0] === language.split('-')[0]);
+    if (match) return match;
+  }
+
+  return config.defaultLocale;
+}
+
 export { config };

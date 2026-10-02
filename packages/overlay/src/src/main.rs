@@ -2,13 +2,13 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use native_dialog::{ MessageDialogBuilder, MessageLevel };
-use tauri::{ async_runtime::spawn, Manager };
+use tauri::async_runtime::spawn;
 use version_compare::{ compare_to, Cmp };
 
-const REPO_OWNER: &'static str = "grand-hawk";
+const REPO_OWNER: &'static str = "Gamergoat795";
 const REPO_NAME: &'static str = "artillery-calculator";
-const REMOTE_URL: &'static str = "https://artillery-calculator.com";
-const DOWNLOAD_URL: &'static str = "https://download.artillery-calculator.com";
+const DOWNLOAD_URL: &'static str =
+  "https://github.com/Gamergoat795/artillery-calculator/releases/latest";
 
 async fn check_for_updates(current_version: String) {
   println!("Fetching latest version...");
@@ -54,8 +54,6 @@ fn main() {
   tauri::Builder
     ::default()
     .setup(|app| {
-      let main = app.get_webview_window("main").unwrap();
-
       // `tauri dev` builds debug, `tauri build` builds release
       let production = !cfg!(debug_assertions);
 
@@ -64,13 +62,10 @@ fn main() {
       if production {
         let version = app.package_info().version.to_string();
 
+        // the calculator itself is bundled, see `frontendDist`
         spawn(async move {
           check_for_updates(version).await;
         });
-
-        let _ = main.eval(
-          &format!("window.location.replace('{}')", REMOTE_URL)
-        );
       }
 
       Ok(())

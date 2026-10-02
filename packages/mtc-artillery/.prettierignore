@@ -8,3 +8,4 @@ assets
 # frameworks
 next-env.d.ts
 .next
+out
